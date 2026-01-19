@@ -22,6 +22,7 @@ public class Index {
 
 
         public int rechercherSortie(Integer sortie) {
+
             //{}=>{recherche dichotomique de sortie dans sorties (triée dans l'ordre croissant)
             // résultat = l'indice de sortie dans sorties si trouvé, - l'indice d'insertion si non trouvé }
             return 0;
