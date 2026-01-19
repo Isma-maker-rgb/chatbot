@@ -128,6 +128,21 @@ public class Utilitaire {
     static private boolean existeChaineDicho(ArrayList<String> lesChaines, String chaine) {
         //{lesChaines (triée dans l'ordre lexicographique)}=>  {recherche dichotomique de chaine dans lesChaines
         // résultat =  true si trouvé et false sinon }
+        int inf = 0;
+        int sup = lesChaines.size() - 1;
+
+        while (inf <= sup) {
+            int m = (inf + sup) / 2;
+            int cmp = chaine.compareTo(LesChaines.get(m));
+
+            if (cmp == 0) {
+                retunr true;
+            } else if (cmp < 0) {
+                sup = m - 1;
+            } else {
+                inf = m + 1;
+            }
+        }
         return false;
     }
 
@@ -164,6 +179,17 @@ public class Utilitaire {
         // et les sorties sont les indices (dans reponses) des réponses les contenant.
         // remarque : utilise existeChaineDicho, decoupeEnMots et ajouterSortieAEntree }
         Index index = new Index();
+
+        for (int i = 0; i < reponses.size(); i++) {
+            String rep = reponses.get(i);
+            ArrayList<String> mots = decoupeEnMots(rep);
+
+            for (String mot : mots) {
+                if(!existeChaineDicho(motsOutils, mot)) {
+                    index.ajouterSortieAEntree(mot, i);
+                }
+            }
+        }
         return index;
     }
 
@@ -180,14 +206,57 @@ public class Utilitaire {
         // Par exemple, si V est [3,4,5,5,5,6,6,8,8,8,12,16,16,20]
         // si seuil<=3 alors le résultat est [5,8].
         // si le seuil>3 alors le résultat est []}
-        return new ArrayList<Integer>();
+        ArrayList<Integer> res = new ArrayList<>();
+        if (v.isEmpty()) return res;
+
+        int max = 1;
+        int count = 1;
+
+        for (int i = 1; i < v.size(); i++) {
+            if (v.get(i).equals(v.get(i - 1))) {
+                count++;
+            } else {
+                if (count > max) max = count;
+                count = 1;
+            }
+        }
+        if (count > max) max = count;
+
+        if (max < seuil) return res;
+
+        count = 1;
+        for (int i = 1; i < v.size(); i++) {
+            if (v.get(i).equals(v.get(i - 1))) {
+                count++;
+            } else {
+                if (count == max) res.add(v.get(i - 1));
+                count = 1;
+            }
+        }
+        if (count == max) res.add(v.get(v.size() - 1));
+
+        return res;
     }
 
     static ArrayList<Integer> fusion(ArrayList<Integer> v1, ArrayList<Integer> v2) {
         //{v1 et v2 triés}=>{résultat = vecteur trié fusionnant v1 et v2 sans supprimer les répétitions
         // par exemple si v1 est [4,8,8,10,25] et v2 est [5,8,9,25]
         // le résultat est [4,5,8,8,8,9,10,25,25]}
-        return new ArrayList<Integer>();
+        ArrayList<Integer> res = new ArrayList<>();
+        int i = 0, j = 0;
+
+        while (i < v1.size() && j < v2.size()) {
+            if (v1.get(i) <= v2.get(j)) {
+                res.add(v1.get(i++));
+            } else {
+                res.add(v2.get(j++));
+            }
+        }
+
+        while (i < v1.size()) res.add(v1.get(i++));
+        while (j < v2.size()) res.add(v2.get(j++));
+
+        return res;
     }
 
 
@@ -221,7 +290,19 @@ public class Utilitaire {
         // remarque 3 : on aurait pu calculer directement une intersection au lieu d'une fusion et se passer de maxOccurences mais on
         // souhaite pouvoir garder la possibilité d'assouplir par la suite la contrainte sur la présence de l'intégralité
         // des mots de la question dans la réponse }
-        return new ArrayList<Integer>();
+            ArrayList<String> mots = decoupeEnMots(question);
+        ArrayList<Integer> fusionGlobale = new ArrayList<>();
+        int nbMotsUtiles = 0;
+
+        for (String mot : mots) {
+            if (!existeChaineDicho(motsOutils, mot)) {
+                nbMotsUtiles++;
+                ArrayList<Integer> sorties = indexReponses.rechercherSorties(mot);
+                fusionGlobale = fusion(fusionGlobale, sorties);
+            }
+        }
+
+        return maxOccurences(fusionGlobale, nbMotsUtiles);
     }
 
 
