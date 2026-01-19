@@ -21,6 +21,7 @@ public class Utilitaire {
                 motsOutils.add(ligne);
             }
 
+
             scanner.close();
         } catch (IOException e) {
             e.printStackTrace();
