@@ -21,11 +21,28 @@ public class Index {
         }
 
 
-        public int rechercherSortie(Integer sortie) {
-
+        public int rechercherSortie(Integer sortie)
+        {
             //{}=>{recherche dichotomique de sortie dans sorties (triée dans l'ordre croissant)
             // résultat = l'indice de sortie dans sorties si trouvé, - l'indice d'insertion si non trouvé }
-            return 0;
+            if (sorties.get(sorties.size()-1) < sortie)
+            {
+                return -sorties.size();
+            }
+            else
+            {
+                int inf = 0;
+                int sup = sorties.size() - 1;
+                int m;
+                while (inf < sup)
+                {
+                    m = (inf + sup) / 2;
+                    if (sorties.get(m) >= sortie) {sup = m;}
+                    else {inf = m + 1;}
+                }
+                if (sorties.get(sup) == sortie) {return sup;}
+                else {return -sup;}
+            }
         }
 
 
