@@ -49,6 +49,8 @@ public class Index {
         public void ajouterSortie(Integer sortie) {
             //{}=>{insère sortie à la bonne place dans sorties (triée dans l'ordre croissant)
             // remarque : utilise rechercherSortie de EntreeIndex }
+            int i = rechercherSortie(sortie);
+            sorties.add(i, sortie);
         }
 
 
@@ -67,10 +69,28 @@ public class Index {
     }
 
 
-    public int rechercherEntree(String entree) {
+    public int rechercherEntree(String entree)
+    {
         //{}=>  {recherche dichotomique de entree dans table (triée dans l'ordre lexicographique des attributs entree des EntreeIndex) }
         //résultat =  l'indice de entree dans table si trouvé et -l'indice d'insertion sinon }
-        return 0;
+        if (entree.compareTo(table.get(table.size()-1).entree) > 0)
+            {
+                return -table.size();
+            }
+            else
+            {
+                int inf = 0;
+                int sup = table.size() - 1;
+                int m;
+                while (inf < sup)
+                {
+                    m = (inf + sup) / 2;
+                    if (entree.compareTo(table.get(m).entree) <= 0) {sup = m;}
+                    else {inf = m + 1;}
+                }
+                if (entree.compareTo(table.get(sup).entree) == 0) {return sup;}
+                else {return -sup;}
+            }
     }
 
 
@@ -79,6 +99,10 @@ public class Index {
         // si l'entrée entree n'existe pas elle est créée.
         // ne fait rien si sortie était déjà présente dans ses sorties.
         // remarque : utilise la fonction rechercherEntree de Index et la procedure ajouterSortie de EntreeIndex}
+        if (rechercherEntree(entree) < 0)
+        {
+
+        }
     }
 
 
