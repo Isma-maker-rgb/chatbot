@@ -120,7 +120,13 @@ public class Index {
         // {}=>{résultat = les sorties associées à l'entrée entree
         // si l'entrée entree n'existe pas, une ArrayList vide est retournée.
         // remarque : utilise la fonction rechercherEntree de Index}
-        return new ArrayList<Integer>();
+        int i = rechercherEntree(entree);
+
+        if (i >= 0){
+            return table.get(i).getSorties();
+        } else {
+            return new ArrayList<Integer>();
+        }
     }
 
     public void afficher() {
