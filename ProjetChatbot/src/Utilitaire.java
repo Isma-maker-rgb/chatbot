@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Utilitaire {
@@ -133,10 +134,10 @@ public class Utilitaire {
 
         while (inf <= sup) {
             int m = (inf + sup) / 2;
-            int cmp = chaine.compareTo(LesChaines.get(m));
+            int cmp = chaine.compareTo(lesChaines.get(m));
 
             if (cmp == 0) {
-                retunr true;
+                return true;
             } else if (cmp < 0) {
                 sup = m - 1;
             } else {
@@ -196,7 +197,18 @@ public class Utilitaire {
 
     static void trierChaines(ArrayList<String> v) {
         //{}=>{v est trié dans l'ordre lexicographique }
-
+        int n = v.size();
+        for (int i = 0; i < n-1; i++){
+            int minIndex = i;
+            for (int j = i+1; j < n; j++){
+                if (v.get(j).compareTo(v.get(minIndex))< 0){
+                    minIndex = j;
+                }
+            }
+            String temp = v.get(minIndex);
+            v.set(minIndex, v.get(i));
+            v.set(i, temp);
+        }
     }
 
 
