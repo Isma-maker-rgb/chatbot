@@ -33,7 +33,7 @@ public class Chatbot {
         //thesaurus = ...
 
         // construction de l'index pour retrouver rapidement les réponses sur leurs thématiques
-        indexThemes = Utilitaire.contructionIndexReponses(reponses, motsOutils);
+        indexThemes = Utilitaire.constructionIndexReponses(reponses, motsOutils);
         indexThemes.afficher();
 
         // construction de la table des formes de réponses
@@ -76,7 +76,7 @@ public class Chatbot {
         ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(question, indexThemes, motsOutils);
 
         if (reponsesCandidates.isEmpty()) {
-            return MESSAGE_IGNORANCE;   // "Je ne sais pas."
+            return MESSAGE_IGNORANCE;
         }
 
         String resultat = "";
