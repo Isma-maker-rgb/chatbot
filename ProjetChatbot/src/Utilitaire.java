@@ -133,10 +133,10 @@ public class Utilitaire {
 
         while (inf <= sup) {
             int m = (inf + sup) / 2;
-            int cmp = chaine.compareTo(LesChaines.get(m));
+            int cmp = chaine.compareTo(lesChaines.get(m));
 
             if (cmp == 0) {
-                retunr true;
+                return true;
             } else if (cmp < 0) {
                 sup = m - 1;
             } else {
@@ -331,19 +331,7 @@ public class Utilitaire {
         // remarque 3 : on aurait pu calculer directement une intersection au lieu d'une fusion et se passer de maxOccurences mais on
         // souhaite pouvoir garder la possibilité d'assouplir par la suite la contrainte sur la présence de l'intégralité
         // des mots de la question dans la réponse }
-            ArrayList<String> mots = decoupeEnMots(question);
-        ArrayList<Integer> fusionGlobale = new ArrayList<>();
-        int nbMotsUtiles = 0;
-
-        for (String mot : mots) {
-            if (!existeChaineDicho(motsOutils, mot)) {
-                nbMotsUtiles++;
-                ArrayList<Integer> sorties = indexReponses.rechercherSorties(mot);
-                fusionGlobale = fusion(fusionGlobale, sorties);
-            }
-        }
-
-        return maxOccurences(fusionGlobale, nbMotsUtiles);
+        return new ArrayList<Integer>();
     }
 
 
