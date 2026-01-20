@@ -73,24 +73,32 @@ public class Index {
     {
         //{}=>  {recherche dichotomique de entree dans table (triée dans l'ordre lexicographique des attributs entree des EntreeIndex) }
         //résultat =  l'indice de entree dans table si trouvé et -l'indice d'insertion sinon }
-        if (entree.compareTo(table.get(table.size()-1).entree) > 0)
-            {
-                return -table.size();
+        if (table.isEmpty()) {
+            return -1;
+        }
+
+        if (entree.compareTo(table.get(table.size()-1).entree) > 0) {
+            return -(table.size() + 1);
+        }
+
+        int inf = 0;
+        int sup = table.size() - 1;
+        int m;
+
+        while (inf < sup) {
+            m = (inf + sup) / 2;
+            if (entree.compareTo(table.get(m).entree) <= 0) {
+                sup = m;
+            } else {
+                inf = m + 1;
             }
-            else
-            {
-                int inf = 0;
-                int sup = table.size() - 1;
-                int m;
-                while (inf < sup)
-                {
-                    m = (inf + sup) / 2;
-                    if (entree.compareTo(table.get(m).entree) <= 0) {sup = m;}
-                    else {inf = m + 1;}
-                }
-                if (entree.compareTo(table.get(sup).entree) == 0) {return sup;}
-                else {return -sup;}
-            }
+        }
+
+        if (entree.compareTo(table.get(sup).entree) == 0) {
+            return sup;
+        } else {
+            return -(sup + 1);
+        }
     }
 
 
