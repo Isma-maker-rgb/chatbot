@@ -84,6 +84,22 @@ public class Chatbot {
         for (int id : reponsesCandidates) {
             resultat = resultat + reponses.get(id) + "\n";
         }
+        /*ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(question, indexThemes, motsOutils);
+
+        if (reponsesCandidates.isEmpty()) {
+            return MESSAGE_IGNORANCE; //
+        }
+
+        ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(
+            question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils);
+
+        if (reponsesSelectionnees.isEmpty()) {
+            return MESSAGE_IGNORANCE; //
+        }
+
+            int choix = (int) (Math.random() * reponses.size());
+        return (reponses.get(choix));
+    }*/
 
         return resultat.trim();
     }
