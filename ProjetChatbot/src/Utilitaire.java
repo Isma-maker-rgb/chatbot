@@ -264,12 +264,32 @@ public class Utilitaire {
         //{}=>{résultat = la concaténation des NBMOTS_FORME premiers mots-outils de chaine séparés par des blancs
         // remarque 1 : utilise decoupeMots et existeChaineDicho
         // remarque 2 : la limitation de la taille des formes permet d'accepter des réponses terminant par des précisions }
+        ArrayList<String> mots = decoupeEnMots(chaine); //
+        String forme = "";
+        int nbMotsOutilsTrouves = 0;
+
+        for (String mot : mots) {
+            if (nbMotsOutilsTrouves < NBMOTS_FORME && existeChaineDicho(motsOutils, mot)) { //
+                if (!forme.equals("")) {
+                    forme += " ";
+                }
+                forme += mot;
+                nbMotsOutilsTrouves++;
+            }
+        }
         return "";
     }
 
     static public ArrayList<String> constructionTableFormes(ArrayList<String> reponses, ArrayList<String> motsOutils) {
         //{}=>{résultat = le vecteur de toutes les formes de réponses dans reponses.
         // remarque : utilise calculForme et existeChaine }
+        ArrayList<String> tableFormes = new ArrayList<>();
+        for (String rep : reponses) {
+            String f = calculForme(rep, motsOutils); //
+            if (!existeChaine(tableFormes, f)) { //
+                tableFormes.add(f);
+            }
+        }
         return new ArrayList<String>();
     }
 
@@ -280,6 +300,27 @@ public class Utilitaire {
         // remarque 2 : utilisez les méthodes indexOf et substring de String pour décomposer la question-réponse en question et réponse
         // remarque 3 : seuls les NBMOTS_FORME premiers mots-outils de la question sont pris en compte}
         Index index = new Index();
+        for (String qr : questionsReponses) {
+        int indexPointInterro = qr.indexOf("?"); //
+        if (indexPointInterro != -1) {
+            String question = qr.substring(0, indexPointInterro);
+            String reponse = qr.substring(indexPointInterro + 1).trim();
+
+            String formeReponse = calculForme(reponse, motsOutils); //
+            int idForme = rechercherChaine(formes, formeReponse); //
+
+            if (idForme != -1) {
+                ArrayList<String> motsQuestion = decoupeEnMots(question);
+                int cptOutils = 0;
+                for (String mot : motsQuestion) {
+                    if (cptOutils < NBMOTS_FORME && existeChaineDicho(motsOutils, mot)) {
+                        index.ajouterSortieAEntree(mot + "_" + cptOutils, idForme); //
+                        cptOutils++;
+                    }
+                }
+            }
+        }
+    }
         return index;
     }
 
@@ -326,6 +367,28 @@ public class Utilitaire {
         // remarque 3 : pour trouver les formes de réponses qui répondent à la question, on utilise l'index des formes, et on sélectionne
         // en appelant maxOccurences (avec seuil = nombre des mots-outils de la question) celles associées dans l'index à tous les mots-outils de la question.
         // remarque 4 : seuls les NBMOTS_FORME premiers mots-outils de la question sont pris en compte}
+        ArrayList<String> motsQ = decoupeEnMots(question);
+        ArrayList<Integer> listeFusionneeFormes = new ArrayList<>();
+        int nbOutils = 0;
+
+        for (String mot : motsQ) {
+            if (nbOutils < NBMOTS_FORME && existeChaineDicho(motsOutils, mot)) {
+                ArrayList<Integer> idsFormes = IndexFormes.rechercherSorties(mot + "_" + nbOutils);
+                listeFusionneeFormes = fusion(listeFusionneeFormes, idsFormes);
+                nbOutils++;
+            }
+        }
+
+        ArrayList<Integer> formesValides = maxOccurences(listeFusionneeFormes, nbOutils);
+
+        ArrayList<Integer> resultat = new ArrayList<>();
+        for (Integer idRep : candidates) {
+            String fRep = calculForme(reponses.get(idRep), motsOutils);
+            int idF = rechercherChaine(formesReponses, fRep);
+            if (idF != -1 && formesValides.contains(idF)) {
+                resultat.add(idRep);
+            }
+        }
         return new ArrayList<Integer>();
     }
 
