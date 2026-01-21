@@ -313,26 +313,26 @@ public class Utilitaire {
         // remarque 3 : seuls les NBMOTS_FORME premiers mots-outils de la question sont pris en compte}
         Index index = new Index();
         for (String qr : questionsReponses) {
-        int indexPointInterro = qr.indexOf("?"); //
-        if (indexPointInterro != -1) {
-            String question = qr.substring(0, indexPointInterro);
-            String reponse = qr.substring(indexPointInterro + 1).trim();
+            int indexPointInterro = qr.indexOf("?"); //
+            if (indexPointInterro != -1) {
+                String question = qr.substring(0, indexPointInterro);
+                String reponse = qr.substring(indexPointInterro + 1).trim();
 
-            String formeReponse = calculForme(reponse, motsOutils); //
-            int idForme = rechercherChaine(formes, formeReponse); //
+                String formeReponse = calculForme(reponse, motsOutils); //
+                int idForme = rechercherChaine(formes, formeReponse); //
 
-            if (idForme != -1) {
-                ArrayList<String> motsQuestion = decoupeEnMots(question);
-                int cptOutils = 0;
-                for (String mot : motsQuestion) {
-                    if (cptOutils < NBMOTS_FORME && existeChaineDicho(motsOutils, mot)) {
-                        index.ajouterSortieAEntree(mot + "_" + cptOutils, idForme); //
-                        cptOutils++;
+                if (idForme != -1) {
+                    ArrayList<String> motsQuestion = decoupeEnMots(question);
+                    int cptOutils = 0;
+                    for (String mot : motsQuestion) {
+                        if (cptOutils < NBMOTS_FORME && existeChaineDicho(motsOutils, mot)) {
+                            index.ajouterSortieAEntree(mot + "_" + cptOutils, idForme); //
+                            cptOutils++;
+                        }
                     }
                 }
             }
         }
-    }
         return index;
     }
 
