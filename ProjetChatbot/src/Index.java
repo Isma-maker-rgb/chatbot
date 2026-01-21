@@ -49,7 +49,7 @@ public class Index {
         public void ajouterSortie(Integer sortie) {
             //{}=>{insère sortie à la bonne place dans sorties (triée dans l'ordre croissant)
             // remarque : utilise rechercherSortie de EntreeIndex }
-             int pos = rechercherSortie(sortie);
+            int pos = rechercherSortie(sortie);
             if (pos < 0){
 
             int indexInsertion = -pos;
