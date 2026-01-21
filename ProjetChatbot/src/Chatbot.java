@@ -33,7 +33,7 @@ public class Chatbot {
         //thesaurus = ...
 
         // construction de l'index pour retrouver rapidement les réponses sur leurs thématiques
-        indexThemes = Utilitaire.constructionIndexReponses(reponses, motsOutils);
+        indexThemes = Utilitaire.constructionIndexReponses(reponses, motsOutils, thesaurus);
         indexThemes.afficher();
 
         // construction de la table des formes de réponses
