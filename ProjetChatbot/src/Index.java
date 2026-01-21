@@ -49,13 +49,9 @@ public class Index {
         public void ajouterSortie(Integer sortie) {
             //{}=>{insère sortie à la bonne place dans sorties (triée dans l'ordre croissant)
             // remarque : utilise rechercherSortie de EntreeIndex }
-            int pos = rechercherSortie(sortie);
-            if (pos < 0){
-
-            int indexInsertion = -pos;
-            sorties.add(indexInsertion, sortie);
+            int i = rechercherSortie(sortie);
+            sorties.add(i, sortie);
         }
-    }
 
 
         @Override
@@ -111,18 +107,20 @@ public class Index {
         // si l'entrée entree n'existe pas elle est créée.
         // ne fait rien si sortie était déjà présente dans ses sorties.
         // remarque : utilise la fonction rechercherEntree de Index et la procedure ajouterSortie de EntreeIndex}
-        int pos = rechercherEntree(entree);
-        EntreeIndex ei;
+        int i = rechercherEntree(entree);
 
-        if (pos >= 0) {
-            ei = table.get(pos);
+        if (i >= 0) {
+            EntreeIndex ei = table.get(i);
+            int pos = ei.rechercherSortie(sortie);
+            if (pos < 0){
+                ei.ajouterSortie(sortie);
+            }
         } else {
-            ei = new EntreeIndex(entree);
-            int indexInsertion = -pos;
-            table.add(indexInsertion, ei);
+            int indiceInsertion = -i;
+            EntreeIndex ei = new EntreeIndex(entree);
+            ei.ajouterSortie(sortie);
+            table.add(indiceInsertion, ei);
         }
-
-        ei.ajouterSortie(sortie);
     }
 
 
