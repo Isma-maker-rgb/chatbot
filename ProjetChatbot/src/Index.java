@@ -25,6 +25,10 @@ public class Index {
         {
             //{}=>{recherche dichotomique de sortie dans sorties (triée dans l'ordre croissant)
             // résultat = l'indice de sortie dans sorties si trouvé, - l'indice d'insertion si non trouvé }
+            if (sorties.size() == 0){
+                return 0;
+            }
+
             if (sorties.get(sorties.size()-1) < sortie)
             {
                 return -sorties.size();
@@ -49,8 +53,11 @@ public class Index {
         public void ajouterSortie(Integer sortie) {
             //{}=>{insère sortie à la bonne place dans sorties (triée dans l'ordre croissant)
             // remarque : utilise rechercherSortie de EntreeIndex }
-            int i = rechercherSortie(sortie);
-            sorties.add(i, sortie);
+            int pos = rechercherSortie(sortie);
+            if (pos < 0) {
+                int indexInsertion = -pos;
+                sorties.add(indexInsertion, sortie);
+            }
         }
 
 
@@ -78,7 +85,7 @@ public class Index {
         }
 
         if (entree.compareTo(table.get(table.size()-1).entree) > 0) {
-            return -(table.size() + 1);
+            return -(table.size()+1);
         }
 
         int inf = 0;
@@ -107,20 +114,21 @@ public class Index {
         // si l'entrée entree n'existe pas elle est créée.
         // ne fait rien si sortie était déjà présente dans ses sorties.
         // remarque : utilise la fonction rechercherEntree de Index et la procedure ajouterSortie de EntreeIndex}
-        int i = rechercherEntree(entree);
+        int pos = rechercherEntree(entree);
+        EntreeIndex ei;
+//        if (pos == 0 && table.size() == 0){
+//            ei = new EntreeIndex(entree);
+//            table.add(0, ei);
+//        }
 
-        if (i >= 0) {
-            EntreeIndex ei = table.get(i);
-            int pos = ei.rechercherSortie(sortie);
-            if (pos < 0){
-                ei.ajouterSortie(sortie);
-            }
+        if (pos >= 0) {
+            ei = table.get(pos);
         } else {
-            int indiceInsertion = -i;
-            EntreeIndex ei = new EntreeIndex(entree);
-            ei.ajouterSortie(sortie);
-            table.add(indiceInsertion, ei);
+            ei = new EntreeIndex(entree);
+            int indexInsertion = -(pos+1);
+            table.add(indexInsertion, ei);
         }
+        ei.ajouterSortie(sortie);
     }
 
 
