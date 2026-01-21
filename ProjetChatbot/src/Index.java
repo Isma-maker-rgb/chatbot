@@ -25,6 +25,10 @@ public class Index {
         {
             //{}=>{recherche dichotomique de sortie dans sorties (triée dans l'ordre croissant)
             // résultat = l'indice de sortie dans sorties si trouvé, - l'indice d'insertion si non trouvé }
+            if (sorties.size() == 0){
+                return 0;
+            }
+
             if (sorties.get(sorties.size()-1) < sortie)
             {
                 return -sorties.size();
@@ -50,12 +54,11 @@ public class Index {
             //{}=>{insère sortie à la bonne place dans sorties (triée dans l'ordre croissant)
             // remarque : utilise rechercherSortie de EntreeIndex }
             int pos = rechercherSortie(sortie);
-            if (pos < 0){
-
-            int indexInsertion = -pos;
-            sorties.add(indexInsertion, sortie);
+            if (pos < 0) {
+                int indexInsertion = -pos;
+                sorties.add(indexInsertion, sortie);
+            }
         }
-    }        
 
 
         @Override
@@ -82,7 +85,7 @@ public class Index {
         }
 
         if (entree.compareTo(table.get(table.size()-1).entree) > 0) {
-            return -(table.size() + 1);
+            return -(table.size()+1);
         }
 
         int inf = 0;
@@ -113,12 +116,16 @@ public class Index {
         // remarque : utilise la fonction rechercherEntree de Index et la procedure ajouterSortie de EntreeIndex}
         int pos = rechercherEntree(entree);
         EntreeIndex ei;
+//        if (pos == 0 && table.size() == 0){
+//            ei = new EntreeIndex(entree);
+//            table.add(0, ei);
+//        }
 
         if (pos >= 0) {
             ei = table.get(pos);
         } else {
             ei = new EntreeIndex(entree);
-            int indexInsertion = -pos;
+            int indexInsertion = -(pos+1);
             table.add(indexInsertion, ei);
         }
         ei.ajouterSortie(sortie);
