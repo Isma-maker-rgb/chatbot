@@ -1,5 +1,7 @@
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Thesaurus {
 
@@ -26,6 +28,26 @@ public class Thesaurus {
         // remarque 2 : pour la lecture du fichier, inspirez-vous de lireMotsOutils de Utilitaire
         // remarque 3 : pour les traitements de la chaîne lue, utilisez les méthodes indexOf,substring de String
         table = new ArrayList<>();
+        try {
+            FileInputStream file = new FileInputStream(nomFichier);
+            Scanner scanner = new Scanner(file);
+
+            while (scanner.hasNextLine()) {
+                String ligne = scanner.nextLine();
+                int index = ligne.indexOf(":");
+                if (index != -1)
+                {
+                    String entree = ligne.substring(0, index);
+                    String sortie = ligne.substring(index+1);
+                    ajouterEntreeSortie(entree,sortie);
+                }
+            }
+
+            scanner.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        trierEntreesSorties(table);
     }
 
     public void ajouterEntreeSortie(String entree, String sortie)
