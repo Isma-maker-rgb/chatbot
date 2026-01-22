@@ -151,7 +151,12 @@ public class Utilitaire {
         //{mots est trié dans l'ordre lexicographique}=>
         // résultat = true si tous les mots de questions sont dans mots, false sinon
         // remarque : utilise decoupeEnMots et existeChaineDicho}
-        return false;
+            for (String mot : motsQuestion) {
+            if (!motsOutils.contains(mot)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
