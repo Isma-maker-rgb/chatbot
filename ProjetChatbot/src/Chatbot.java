@@ -58,9 +58,36 @@ public class Chatbot {
         lecteur.close();
     }
 
-    static private String repondre(String question) {
+    static private String repondre(String questionUtilisateur) {
+        // --- NOUVELLE FONCTIONNALITÉ : APPRENTISSAGE ---
+        if (questionUtilisateur.equalsIgnoreCase("je vais te l'apprendre.")) {
+            Scanner sc = new Scanner(System.in);
+
+            System.out.println("> Quelle est la question ?");
+            System.out.print("> ");
+            String q = sc.nextLine();
+
+            System.out.println("> Quelle est la réponse ?");
+            System.out.print("> ");
+            String r = sc.nextLine();
+
+            // 1. Sauvegarde physique dans les fichiers .txt
+            Utilitaire.ecrireFichier("reponses.txt", r);
+            Utilitaire.ecrireFichier("questions-reponses.txt", q + "?" + r);
+
+            // 2. Mise à jour des structures de données en mémoire
+            // Ajout de la réponse et mise à jour de l'index thématique
+            Utilitaire.IntegrerNouvelleReponse(r, reponses, indexThemes, motsOutils);
+            // Ajout de la forme de la réponse et mise à jour de l'index des formes
+            Utilitaire.integrerNouvelleQuestionReponse(q, r, formesReponses, indexFormes, motsOutils);
+
+            return "Merci ! J'ai bien enregistré cette nouvelle connaissance.";
+        }
+
+        // --- LOGIQUE EXISTANTE : RECHERCHE ---
+
         // --- ETAPE 1 : Recherche sur le thème ---
-        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(question, indexThemes, motsOutils);
+        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(questionUtilisateur, indexThemes, motsOutils);
 
         if (reponsesCandidates.isEmpty()) {
             return MESSAGE_IGNORANCE;
@@ -68,17 +95,16 @@ public class Chatbot {
 
         // --- ETAPE 2 : Filtrage sur la forme ---
         ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(
-                question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils);
+                questionUtilisateur, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils);
 
-        // Si l'étape 2 filtre tout, on renvoie "Je ne sais pas" (ou on pourrait renvoyer une réponse de l'étape 1 par défaut)
         if (reponsesSelectionnees.isEmpty()) {
-            // Optionnel : décommenter ligne suivante pour être plus souple et répondre même si la forme est bizarre
-            // return reponses.get(reponsesCandidates.get(0));
+            // Optionnel : on peut retourner une réponse de l'étape 1 si le filtrage de forme est trop strict
             return MESSAGE_IGNORANCE;
         }
 
-        // Choix aléatoire parmi les réponses restantes
+        // Choix aléatoire parmi les réponses sélectionnées
         int choix = (int) (Math.random() * reponsesSelectionnees.size());
         return reponses.get(reponsesSelectionnees.get(choix));
     }
 }
+
