@@ -13,6 +13,7 @@ public class Chatbot {
     static private ArrayList<String> motsOutils;
     static private ArrayList<String> reponses;
     private static ArrayList<String> formesReponses;
+    private static Thesaurus thesaurus = new Thesaurus("thesaurus.txt");
 
     public static void main(String[] args) {
 
@@ -25,15 +26,15 @@ public class Chatbot {
         reponses = Utilitaire.lireReponses("reponses.txt");
 
         // 2. Construction Index Contenu (Etape 1)
-        indexThemes = Utilitaire.constructionIndexReponses(reponses, motsOutils);
+        indexThemes = Utilitaire.constructionIndexReponses(reponses, motsOutils, thesaurus);
 
         // 3. Construction Index Forme (Etape 2)
         // D'abord on liste toutes les formes possibles existant dans reponses.txt
-        formesReponses = Utilitaire.constructionTableFormes(reponses, motsOutils);
+        formesReponses = Utilitaire.constructionTableFormes(reponses, motsOutils, thesaurus);
 
         // Ensuite on apprend quel type de question mène à quel type de forme de réponse
         ArrayList<String> questionsReponses = Utilitaire.lireQuestionsReponses("questions-reponses.txt");
-        indexFormes = Utilitaire.constructionIndexFormes(questionsReponses, formesReponses, motsOutils);
+        indexFormes = Utilitaire.constructionIndexFormes(questionsReponses, formesReponses, motsOutils, thesaurus);
 
         // 4. Boucle principale
         Scanner lecteur = new Scanner(System.in);
@@ -58,9 +59,36 @@ public class Chatbot {
         lecteur.close();
     }
 
-    static private String repondre(String question) {
+    static private String repondre(String questionUtilisateur) {
+                // --- NOUVELLE FONCTIONNALITÉ : APPRENTISSAGE ---
+        if (questionUtilisateur.equalsIgnoreCase("je vais te l'apprendre.")) {
+            Scanner sc = new Scanner(System.in);
+
+            System.out.println("> Quelle est la question ?");
+            System.out.print("> ");
+            String q = sc.nextLine();
+
+            System.out.println("> Quelle est la réponse ?");
+            System.out.print("> ");
+            String r = sc.nextLine();
+
+            // 1. Sauvegarde physique dans les fichiers .txt
+            Utilitaire.ecrireFichier("reponses.txt", r);
+            Utilitaire.ecrireFichier("questions-reponses.txt", q + "?" + r);
+
+            // 2. Mise à jour des structures de données en mémoire
+            // Ajout de la réponse et mise à jour de l'index thématique
+            Utilitaire.IntegrerNouvelleReponse(r, reponses, indexThemes, motsOutils);
+            // Ajout de la forme de la réponse et mise à jour de l'index des formes
+            Utilitaire.integrerNouvelleQuestionReponse(q, r, formesReponses, indexFormes, motsOutils, thesaurus);
+
+            return "Merci ! J'ai bien enregistré cette nouvelle connaissance.";
+        }
+
+        // --- LOGIQUE EXISTANTE : RECHERCHE ---
+
         // --- ETAPE 1 : Recherche sur le thème ---
-        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(question, indexThemes, motsOutils);
+        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(questionUtilisateur, indexThemes, motsOutils);
 
         if (reponsesCandidates.isEmpty()) {
             return MESSAGE_IGNORANCE;
@@ -68,7 +96,7 @@ public class Chatbot {
 
         // --- ETAPE 2 : Filtrage sur la forme ---
         ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(
-                question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils);
+                questionUtilisateur, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils, thesaurus);
 
         // Si l'étape 2 filtre tout, on renvoie "Je ne sais pas" (ou on pourrait renvoyer une réponse de l'étape 1 par défaut)
         if (reponsesSelectionnees.isEmpty()) {

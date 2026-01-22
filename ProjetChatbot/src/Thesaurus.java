@@ -72,9 +72,13 @@ public class Thesaurus {
                 inf = m + 1;
             }
         }
+        if (table.isEmpty()){return entree;}
+
         if (entree.compareTo(table.get(sup).entree) == 0) {
             return table.get(sup).sortie;
-        } else {
+        }
+        else
+        {
             return entree;
         }
 

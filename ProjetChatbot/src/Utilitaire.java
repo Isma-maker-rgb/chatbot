@@ -152,11 +152,16 @@ public class Utilitaire {
     }
 
 
-    public static Index constructionIndexReponses(ArrayList<String> reponses, ArrayList<String> motsOutils) {
+    public static Index constructionIndexReponses(ArrayList<String> reponses, ArrayList<String> motsOutils, Thesaurus thesaurus) {
         Index index = new Index();
         for (int i = 0; i < reponses.size(); i++) {
             ArrayList<String> mots = decoupeEnMots(reponses.get(i));
-            for (String mot : mots) {
+            for (String mot : mots)
+            {
+                if (mot != thesaurus.rechercherSortiePourEntree(mot))
+                {
+                    mots.add(thesaurus.rechercherSortiePourEntree(mot));
+                }
                 // Si ce n'est pas un mot outil, on l'indexe
                 if (!existeChaineDicho(motsOutils, mot)) {
                     index.ajouterSortieAEntree(mot, i);
@@ -228,12 +233,16 @@ public class Utilitaire {
     // --- ETAPE 2 : FORME ---
 
     // Calcule la "signature" d'une phrase basée sur ses mots-outils (ex: "le ... a ... été ... par")
-    static String calculForme(String chaine, ArrayList<String> motsOutils) {
+    static String calculForme(String chaine, ArrayList<String> motsOutils, Thesaurus thesaurus) {
         ArrayList<String> mots = decoupeEnMots(chaine);
         StringBuilder forme = new StringBuilder();
         int count = 0;
 
         for (String mot : mots) {
+            if (mot != thesaurus.rechercherSortiePourEntree(mot))
+                {
+                    mots.add(thesaurus.rechercherSortiePourEntree(mot));
+                }
             if (count >= NBMOTS_FORME) break;
 
             if (existeChaineDicho(motsOutils, mot)) {
@@ -251,10 +260,10 @@ public class Utilitaire {
     }
 
     // Construit la liste des formes uniques trouvées dans le fichier reponses.txt
-    public static ArrayList<String> constructionTableFormes(ArrayList<String> reponses, ArrayList<String> motsOutils) {
+    public static ArrayList<String> constructionTableFormes(ArrayList<String> reponses, ArrayList<String> motsOutils, Thesaurus thesaurus) {
         ArrayList<String> table = new ArrayList<>();
         for (String rep : reponses) {
-            String forme = calculForme(rep, motsOutils);
+            String forme = calculForme(rep, motsOutils, thesaurus);
             // Recherche séquentielle simple (la table n'est pas forcément triée ici selon l'énoncé)
             boolean existe = false;
             for (String f : table) {
@@ -277,7 +286,7 @@ public class Utilitaire {
     }
 
     // Construit l'index : Mots-outils de la question (+position) -> Indices des formes de réponses compatibles
-    public static Index constructionIndexFormes(ArrayList<String> questionsReponses, ArrayList<String> formes, ArrayList<String> motsOutils) {
+    public static Index constructionIndexFormes(ArrayList<String> questionsReponses, ArrayList<String> formes, ArrayList<String> motsOutils, Thesaurus thesaurus) {
         Index index = new Index();
 
         for (String qr : questionsReponses) {
@@ -288,7 +297,7 @@ public class Utilitaire {
             String reponse = qr.substring(posSep + 1);
 
             // 1. Quelle est la forme de la réponse idéale ?
-            String formeReponse = calculForme(reponse, motsOutils);
+            String formeReponse = calculForme(reponse, motsOutils, thesaurus);
             int idForme = rechercherIndice(formes, formeReponse);
 
             if (idForme != -1) {
@@ -314,7 +323,8 @@ public class Utilitaire {
                                                                  Index indexFormes,
                                                                  ArrayList<String> reponses,
                                                                  ArrayList<String> formesReponses,
-                                                                 ArrayList<String> motsOutils) {
+                                                                 ArrayList<String> motsOutils,
+                                                                 Thesaurus thesaurus) {
 
         // 1. Trouver les IDs des formes compatibles avec la question
         ArrayList<String> motsQ = decoupeEnMots(question);
@@ -339,7 +349,7 @@ public class Utilitaire {
 
         for (Integer idRep : candidates) {
             String texteReponse = reponses.get(idRep);
-            String formeCandidate = calculForme(texteReponse, motsOutils);
+            String formeCandidate = calculForme(texteReponse, motsOutils, thesaurus);
             int idFormeCandidate = rechercherIndice(formesReponses, formeCandidate);
 
             // On garde si la forme de cette réponse fait partie des formes compatibles
@@ -388,9 +398,10 @@ public class Utilitaire {
                                                        String reponse,
                                                        ArrayList<String> formes,
                                                        Index indexFormes,
-                                                       ArrayList<String> motsOutils) {
+                                                       ArrayList<String> motsOutils,
+                                                       Thesaurus thesaurus) {
 
-        String forme = calculForme(reponse, motsOutils);
+        String forme = calculForme(reponse, motsOutils, thesaurus);
 
         int indiceForme = rechercherChaine(formes, forme);
         if (indiceForme == -1) {
@@ -412,4 +423,58 @@ public class Utilitaire {
         }
     }
 
+    static public boolean reponseExiste(String reponse,
+                                        Index indexReponses,
+                                        ArrayList<String> reponses,
+                                        ArrayList<String> motsOutils) {
+
+        // On récupère les candidats à partir du contenu de la réponse
+        ArrayList<Integer> candidats =
+                constructionReponsesCandidates(reponse, indexReponses, motsOutils);
+
+        // On vérifie si l'une des réponses candidates est exactement égale
+        for (Integer id : candidats) {
+            if (reponses.get(id).equalsIgnoreCase(reponse)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static public boolean formeQuestionReponseExiste(String question,
+                                                     String reponse,
+                                                     Index indexFormes,
+                                                     ArrayList<String> formesReponses,
+                                                     ArrayList<String> motsOutils,
+                                                     Thesaurus thesaurus) {
+
+        // 1. Calculer la forme de la réponse
+        String forme = calculForme(reponse, motsOutils,thesaurus);
+
+        // 2. Chercher son indice dans formesReponses
+        int idForme = rechercherChaine(formesReponses, forme);
+        if (idForme == -1) return false;
+
+        // 3. Trouver les formes accessibles depuis la question
+        ArrayList<String> motsQ = decoupeEnMots(question);
+        ArrayList<Integer> fusionFormes = new ArrayList<>();
+        int nbOutils = 0;
+
+        for (String m : motsQ) {
+            if (nbOutils >= NBMOTS_FORME) break;
+
+            if (existeChaineDicho(motsOutils, m)) {
+                String cle = m + "_" + nbOutils;
+                ArrayList<Integer> sorties = indexFormes.rechercherSorties(cle);
+                fusionFormes = fusion(fusionFormes, sorties);
+                nbOutils++;
+            }
+        }
+
+        ArrayList<Integer> formesCompatibles = maxOccurences(fusionFormes, nbOutils);
+
+        // 4. Vérifier si la forme de la réponse fait partie des compatibles
+        return formesCompatibles.contains(idForme);
+    }
 }
