@@ -37,7 +37,7 @@ public class Chatbot {
         indexThemes.afficher();
 
         // construction de la table des formes de réponses
-        formesReponses = Utilitaire.contructionIndexReponses(reponses, motsOutils);
+        formesReponses = Utilitaire.constructionIndexReponses(reponses, motsOutils);
         System.out.println(formesReponses);
 
         // initialisation du vecteur des questions/réponses idéales
@@ -45,7 +45,7 @@ public class Chatbot {
         ArrayList<String> questionsReponses = Utilitaire.lireQuestionsReponses("mini_questions-reponses.txt");
 
         // construction de l'index pour retrouver rapidement les formes possibles de réponses à partir des mots outils de la question
-        indexFormes = Utilitaire.contructionIndexFormes(questionsReponses, formesReponses, motsOutils);
+        indexFormes = Utilitaire.constructionIndexFormes(questionsReponses, formesReponses, motsOutils);
         indexFormes.afficher();
 
         String reponse = "";
@@ -84,14 +84,13 @@ public class Chatbot {
         for (int id : reponsesCandidates) {
             resultat = resultat + reponses.get(id) + "\n";
         }
-        /*ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(question, indexThemes, motsOutils);
+        reponsesCandidates = Utilitaire.constructionReponsesCandidates(question, indexThemes, motsOutils);
 
         if (reponsesCandidates.isEmpty()) {
             return MESSAGE_IGNORANCE; //
         }
 
-        ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(
-            question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils);
+        ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils);
 
         if (reponsesSelectionnees.isEmpty()) {
             return MESSAGE_IGNORANCE; //
@@ -99,7 +98,7 @@ public class Chatbot {
 
             int choix = (int) (Math.random() * reponses.size());
         return (reponses.get(choix));
-    }*/
+    }
 
         return resultat.trim();
     }
