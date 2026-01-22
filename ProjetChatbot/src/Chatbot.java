@@ -118,5 +118,5 @@ public class Chatbot {
         int choix = (int)(Math.random() * reponsesSelectionnees.size());
         return reponses.get(reponsesSelectionnees.get(choix));
     }
-
+ 
 }
