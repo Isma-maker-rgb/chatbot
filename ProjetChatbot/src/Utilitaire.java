@@ -412,4 +412,59 @@ public class Utilitaire {
         }
     }
 
+    static public boolean reponseExiste(String reponse,
+                                        Index indexReponses,
+                                        ArrayList<String> reponses,
+                                        ArrayList<String> motsOutils) {
+
+        // On récupère les candidats à partir du contenu de la réponse
+        ArrayList<Integer> candidats =
+                constructionReponsesCandidates(reponse, indexReponses, motsOutils);
+
+        // On vérifie si l'une des réponses candidates est exactement égale
+        for (Integer id : candidats) {
+            if (reponses.get(id).equalsIgnoreCase(reponse)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static public boolean formeQuestionReponseExiste(String question,
+                                                     String reponse,
+                                                     Index indexFormes,
+                                                     ArrayList<String> formesReponses,
+                                                     ArrayList<String> motsOutils) {
+
+        // 1. Calculer la forme de la réponse
+        String forme = calculForme(reponse, motsOutils);
+
+        // 2. Chercher son indice dans formesReponses
+        int idForme = rechercherChaine(formesReponses, forme);
+        if (idForme == -1) return false;
+
+        // 3. Trouver les formes accessibles depuis la question
+        ArrayList<String> motsQ = decoupeEnMots(question);
+        ArrayList<Integer> fusionFormes = new ArrayList<>();
+        int nbOutils = 0;
+
+        for (String m : motsQ) {
+            if (nbOutils >= NBMOTS_FORME) break;
+
+            if (existeChaineDicho(motsOutils, m)) {
+                String cle = m + "_" + nbOutils;
+                ArrayList<Integer> sorties = indexFormes.rechercherSorties(cle);
+                fusionFormes = fusion(fusionFormes, sorties);
+                nbOutils++;
+            }
+        }
+
+        ArrayList<Integer> formesCompatibles = maxOccurences(fusionFormes, nbOutils);
+
+        // 4. Vérifier si la forme de la réponse fait partie des compatibles
+        return formesCompatibles.contains(idForme);
+    }
+
+
 }
