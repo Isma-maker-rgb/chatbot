@@ -105,8 +105,18 @@ public class Chatbot {
 
     // partie 2
     static private String repondreEnContexte(String question, String questionPrecedente) {
-        return "";
-    }
+            // Étape 1 : on récupère les réponses candidates à partir de l'ancienne question
+        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(questionPrecedente, indexThemes, motsOutils);
 
+    // Étape 2 : on sélectionne celles qui correspondent à la forme de la nouvelle question
+        ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(question, reponsesCandidates, indexFormes, formesReponses, motsOutils);
+
+        if (reponsesSelectionnees.isEmpty()) {
+            return MESSAGE_IGNORANCE;
+        }
+
+        int choix = (int)(Math.random() * reponsesSelectionnees.size());
+        return reponses.get(reponsesSelectionnees.get(choix));
+    }
 
 }
