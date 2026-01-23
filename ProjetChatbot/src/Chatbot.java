@@ -3,109 +3,250 @@ import java.util.Scanner;
 
 public class Chatbot {
 
+    // Messages constants utilisés par le chatbot
     private static final String MESSAGE_IGNORANCE = "Je ne sais pas.";
     private static final String MESSAGE_BIENVENUE = "J'attends tes questions de culture générale.";
     private static final String MESSAGE_QUITTER = "Au revoir.";
+    private static final String MESSAGE_INVITATION = "Je t'écoute.";
+    private static final String MESSAGE_CONFIRMATION = "Très bien, c'est noté.";
 
+    // Index pour trouver rapidement les réponses à partir des mots NON outils de la question (Étape 1)
     private static Index indexThemes;
+    
+    // Index pour trouver rapidement les formes de réponse à partir des mots-outils de la question (Étape 2)
     private static Index indexFormes;
-
+    
+    // Vecteur trié des mots outils (qui, que, quoi, où, quand, comment, etc.)
     static private ArrayList<String> motsOutils;
+    
+    // Vecteur de toutes les réponses possibles du chatbot
     static private ArrayList<String> reponses;
+    
+    // Vecteur des formes de réponses (ex: "... a ... le ...")
     private static ArrayList<String> formesReponses;
-    private static Thesaurus thesaurus = new Thesaurus("thesaurus.txt");
+    
+    // Thésaurus pour gérer les synonymes et variantes (Partie 2.1)
+    private static Thesaurus thesaurus;
+    
+    // Variable pour stocker la dernière question contenant des mots non-outils (Partie 2.2)
+    // Permet de répondre à des questions en contexte comme "Et quand ?" après "Où est né Léonard de Vinci ?"
+    private static String derniereQuestionAvecContexte = "";
+    
+    // Variable pour stocker la dernière question qui n'a pas eu de réponse (Partie 2.4)
+    private static String derniereQuestionSansReponse = "";
 
     public static void main(String[] args) {
 
-        System.out.println("Chargement des données...");
-
-        // 1. Initialisation
+        // === INITIALISATION ===
+        
+        // 1. Charger et trier les mots-outils
         motsOutils = Utilitaire.lireMotsOutils("mots-outils.txt");
         Utilitaire.trierChaines(motsOutils);
 
+        // 2. Charger toutes les réponses possibles
         reponses = Utilitaire.lireReponses("reponses.txt");
 
-        // 2. Construction Index Contenu (Etape 1)
+        // 3. Charger le thésaurus (Partie 2.1)
+        thesaurus = new Thesaurus("thesaurus.txt");
+        
+        // DEBUG: Décommenter pour voir le contenu du thésaurus
+        // thesaurus.afficher();
+
+        // 4. Construire l'index des thèmes (pour l'Étape 1 - recherche par contenu)
+        // Permet de trouver rapidement quelles réponses contiennent un mot donné
         indexThemes = Utilitaire.constructionIndexReponses(reponses, motsOutils, thesaurus);
+        
+        // DEBUG: Décommenter pour voir l'index des thèmes
+        // indexThemes.afficher();
 
-        // 3. Construction Index Forme (Etape 2)
-        // D'abord on liste toutes les formes possibles existant dans reponses.txt
+        // 5. Construire la table des formes de réponses
+        // Ex: "... a ... le ... en ..." est une forme de réponse
         formesReponses = Utilitaire.constructionTableFormes(reponses, motsOutils, thesaurus);
+        
+        // DEBUG: Décommenter pour voir les formes
+        // System.out.println(formesReponses);
 
-        // Ensuite on apprend quel type de question mène à quel type de forme de réponse
+        // 6. Charger les paires question/réponse idéales
         ArrayList<String> questionsReponses = Utilitaire.lireQuestionsReponses("questions-reponses.txt");
-        indexFormes = Utilitaire.constructionIndexFormes(questionsReponses, formesReponses, motsOutils, thesaurus);
 
-        // 4. Boucle principale
+        // 7. Construire l'index des formes (pour l'Étape 2 - recherche par forme)
+        // Permet de savoir quelle forme de réponse correspond à quelle forme de question
+        indexFormes = Utilitaire.constructionIndexFormes(questionsReponses, formesReponses, motsOutils, thesaurus);
+        
+        // DEBUG: Décommenter pour voir l'index des formes
+        // indexFormes.afficher();
+
+        // === BOUCLE PRINCIPALE ===
+        
+        String reponse = "";
+        String entreeUtilisateur = "";
+
         Scanner lecteur = new Scanner(System.in);
+        System.out.println();
+        System.out.print("> ");
         System.out.println(MESSAGE_BIENVENUE);
 
-        String entreeUtilisateur = "";
         do {
             System.out.print("> ");
-            if (lecteur.hasNextLine()) {
-                entreeUtilisateur = lecteur.nextLine();
-
-                if (!entreeUtilisateur.equalsIgnoreCase(MESSAGE_QUITTER)) {
-                    String reponse = repondre(entreeUtilisateur);
+            entreeUtilisateur = lecteur.nextLine();
+            
+            if (entreeUtilisateur.compareToIgnoreCase(MESSAGE_QUITTER) != 0) {
+                
+                // === PARTIE 2.4: VÉRIFIER SI L'UTILISATEUR VEUT APPRENDRE AU CHATBOT ===
+                // Si l'utilisateur dit "Je vais te l'apprendre" après un "Je ne sais pas"
+                if (!derniereQuestionSansReponse.isEmpty() && 
+                    (entreeUtilisateur.equalsIgnoreCase("Je vais te l'apprendre.") || 
+                     entreeUtilisateur.equalsIgnoreCase("Je vais te l'apprendre"))) {
+                    
+                    // Le chatbot demande la réponse
+                    System.out.println("> " + MESSAGE_INVITATION);
+                    System.out.print("> ");
+                    String nouvelleReponse = lecteur.nextLine();
+                    
+                    // Utiliser la dernière question sans réponse
+                    String question = derniereQuestionSansReponse;
+                    
+                    // Vérifier si cette réponse existe déjà dans la base
+                    boolean repExiste = Utilitaire.reponseExiste(nouvelleReponse, indexThemes, reponses, motsOutils, thesaurus);
+                    
+                    if (!repExiste) {
+                        // Cas 1 ou 3: La réponse n'existe pas encore
+                        
+                        // Ajouter la réponse au vecteur et à l'index
+                        Utilitaire.IntegrerNouvelleReponse(nouvelleReponse, reponses, indexThemes, motsOutils);
+                        
+                        // Sauvegarder dans le fichier pour la persistance
+                        Utilitaire.ecrireFichier("../reponses.txt", nouvelleReponse);
+                        
+                        // Mettre à jour la table des formes si cette forme n'existe pas
+                        String forme = Utilitaire.calculForme(nouvelleReponse, motsOutils, thesaurus);
+                        boolean formeExiste = false;
+                        for (String f : formesReponses) {
+                            if (f.equals(forme)) {
+                                formeExiste = true;
+                                break;
+                            }
+                        }
+                        if (!formeExiste) {
+                            formesReponses.add(forme);
+                        }
+                    }
+                    
+                    // Vérifier si la forme question/réponse existe déjà
+                    boolean qrExiste = Utilitaire.formeQuestionReponseExiste(question, nouvelleReponse, 
+                                                                              indexFormes, formesReponses, motsOutils, thesaurus);
+                    
+                    if (!qrExiste) {
+                        // Cas 1 ou 2: La forme question/réponse n'existe pas
+                        
+                        // Ajouter la nouvelle question/réponse à l'index des formes
+                        Utilitaire.integrerNouvelleQuestionReponse(question, nouvelleReponse, 
+                                                                   formesReponses, indexFormes, motsOutils, thesaurus);
+                        
+                        // Sauvegarder dans le fichier pour la persistance
+                        String qrPaire = question + "?" + nouvelleReponse;
+                        Utilitaire.ecrireFichier("../questions-reponses.txt", qrPaire);
+                    }
+                    
+                    reponse = MESSAGE_CONFIRMATION;
+                    
+                    // Réinitialiser la question sans réponse
+                    derniereQuestionSansReponse = "";
+                    
                     System.out.println("> " + reponse);
+                    continue;
                 }
-            } else {
-                break; // Fin du flux
+                
+                // === PARTIE 2.2.c: DÉCIDER COMMENT RÉPONDRE ===
+                
+                // Vérifier si la question ne contient QUE des mots-outils
+                // Ex: "Et quand ?" après "Où est né Léonard de Vinci ?"
+                if (Utilitaire.entierementInclus(motsOutils, entreeUtilisateur)) {
+                    
+                    // Répondre en utilisant le contexte de la question précédente
+                    reponse = repondreEnContexte(entreeUtilisateur, derniereQuestionAvecContexte);
+                    
+                } else {
+                    
+                    // === RÉPONSE NORMALE (avec mots non-outils) ===
+                    
+                    reponse = repondre(entreeUtilisateur);
+                    
+                    // Enregistrer cette question comme contexte pour la prochaine fois
+                    derniereQuestionAvecContexte = entreeUtilisateur;
+                    
+                    // Si le chatbot ne sait pas, enregistrer la question pour un éventuel apprentissage
+                    if (reponse.equals(MESSAGE_IGNORANCE)) {
+                        derniereQuestionSansReponse = entreeUtilisateur;
+                    } else {
+                        // Si on a trouvé une réponse, réinitialiser
+                        derniereQuestionSansReponse = "";
+                    }
+                }
+                
+                System.out.println("> " + reponse);
             }
-        } while (!entreeUtilisateur.equalsIgnoreCase(MESSAGE_QUITTER));
-
-        System.out.println(MESSAGE_QUITTER);
-        lecteur.close();
+        } while (entreeUtilisateur.compareToIgnoreCase(MESSAGE_QUITTER) != 0);
     }
 
-    static private String repondre(String questionUtilisateur) {
-                // --- NOUVELLE FONCTIONNALITÉ : APPRENTISSAGE ---
-        if (questionUtilisateur.equalsIgnoreCase("je vais te l'apprendre.")) {
-            Scanner sc = new Scanner(System.in);
+    static private String repondre(String question) {
+        // === ÉTAPE 1: TROUVER LES RÉPONSES CANDIDATES (par contenu) ===
+        // On cherche toutes les réponses qui contiennent TOUS les mots non-outils de la question
+        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(
+            question, indexThemes, motsOutils, thesaurus);
 
-            System.out.println("> Quelle est la question ?");
-            System.out.print("> ");
-            String q = sc.nextLine();
-
-            System.out.println("> Quelle est la réponse ?");
-            System.out.print("> ");
-            String r = sc.nextLine();
-
-            // 1. Sauvegarde physique dans les fichiers .txt
-            Utilitaire.ecrireFichier("reponses.txt", r);
-            Utilitaire.ecrireFichier("questions-reponses.txt", q + "?" + r);
-
-            // 2. Mise à jour des structures de données en mémoire
-            // Ajout de la réponse et mise à jour de l'index thématique
-            Utilitaire.IntegrerNouvelleReponse(r, reponses, indexThemes, motsOutils);
-            // Ajout de la forme de la réponse et mise à jour de l'index des formes
-            Utilitaire.integrerNouvelleQuestionReponse(q, r, formesReponses, indexFormes, motsOutils, thesaurus);
-
-            return "Merci ! J'ai bien enregistré cette nouvelle connaissance.";
+        if (reponsesCandidates.isEmpty()) {
+            // Aucune réponse ne contient tous les mots de la question
+            return MESSAGE_IGNORANCE;
         }
 
-        // --- LOGIQUE EXISTANTE : RECHERCHE ---
+        // === ÉTAPE 2: SÉLECTIONNER LA MEILLEURE RÉPONSE (par forme) ===
+        // Parmi les candidates, on garde celles dont la forme correspond à la question
+        ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(
+                question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils, thesaurus);
 
-        // --- ETAPE 1 : Recherche sur le thème ---
-        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(questionUtilisateur, indexThemes, motsOutils);
+        if (reponsesSelectionnees.isEmpty()) {
+            // Aucune réponse candidate n'a la bonne forme
+            return MESSAGE_IGNORANCE;
+        }
 
+        // Choisir une réponse aléatoire parmi les réponses sélectionnées
+        int choix = (int) (Math.random() * reponsesSelectionnees.size());
+        return reponses.get(reponsesSelectionnees.get(choix));
+    }
+
+    // === PARTIE 2.2.b: RÉPONDRE EN CONTEXTE ===
+    static private String repondreEnContexte(String question, String questionPrecedente) {
+        // Cette méthode permet de répondre à des questions comme "Et quand ?" 
+        // en utilisant le contexte de la question précédente
+        
+        // Si pas de contexte précédent, impossible de répondre
+        if (questionPrecedente.isEmpty()) {
+            return MESSAGE_IGNORANCE;
+        }
+        
+        // ÉTAPE 1: Construire les réponses candidates à partir de la QUESTION PRÉCÉDENTE
+        // Cela nous donne toutes les réponses qui parlent du même sujet
+        // Ex: si la question précédente était "Où est né Léonard de Vinci ?",
+        // on trouve toutes les réponses parlant de Léonard de Vinci
+        ArrayList<Integer> reponsesCandidates = Utilitaire.constructionReponsesCandidates(
+            questionPrecedente, indexThemes, motsOutils, thesaurus);
+        
         if (reponsesCandidates.isEmpty()) {
             return MESSAGE_IGNORANCE;
         }
-
-        // --- ETAPE 2 : Filtrage sur la forme ---
+        
+        // ÉTAPE 2: Sélectionner parmi ces candidats ceux dont la forme correspond à la NOUVELLE QUESTION
+        // Ex: si la nouvelle question est "Et quand ?", on garde seulement les réponses
+        // qui ont une forme compatible avec "quand" (contenant une date)
         ArrayList<Integer> reponsesSelectionnees = Utilitaire.selectionReponsesCandidates(
-                questionUtilisateur, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils, thesaurus);
-
-        // Si l'étape 2 filtre tout, on renvoie "Je ne sais pas" (ou on pourrait renvoyer une réponse de l'étape 1 par défaut)
+            question, reponsesCandidates, indexFormes, reponses, formesReponses, motsOutils, thesaurus);
+        
         if (reponsesSelectionnees.isEmpty()) {
-            // Optionnel : décommenter ligne suivante pour être plus souple et répondre même si la forme est bizarre
-            // return reponses.get(reponsesCandidates.get(0));
             return MESSAGE_IGNORANCE;
         }
-
-        // Choix aléatoire parmi les réponses restantes
+        
+        // Choisir une réponse aléatoire parmi les réponses sélectionnées
         int choix = (int) (Math.random() * reponsesSelectionnees.size());
         return reponses.get(reponsesSelectionnees.get(choix));
     }
